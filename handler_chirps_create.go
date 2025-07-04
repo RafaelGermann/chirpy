@@ -33,7 +33,7 @@ func (cfg *apiConfig) handlerCreateChirp(w http.ResponseWriter, r *http.Request)
 
 	userId, err := auth.ValidateJWT(token, cfg.jwtSecret)
 	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, err.Error(), err)
+		respondWithError(w, http.StatusUnauthorized, "Couldn't validate JWT", err)
 		return
 	}
 
@@ -68,48 +68,6 @@ func (cfg *apiConfig) handlerCreateChirp(w http.ResponseWriter, r *http.Request)
 		UserID:    chirp.UserID,
 	},
 	)
-}
-
-func (cfg *apiConfig) handlerListChirps(w http.ResponseWriter, r *http.Request) {
-	dbChirps, err := cfg.db.GetChirps(r.Context())
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't get chirps", err)
-		return
-	}
-
-	chirps := []Chirp{}
-	for _, chirp := range dbChirps {
-		chirps = append(chirps, Chirp{
-			ID:        chirp.ID,
-			CreatedAt: chirp.CreatedAt,
-			UpdatedAt: chirp.UpdatedAt,
-			Body:      chirp.Body,
-			UserID:    chirp.UserID,
-		})
-	}
-
-	respondWithJSON(w, http.StatusOK, chirps)
-}
-func (cfg *apiConfig) handlerGetChirp(w http.ResponseWriter, r *http.Request) {
-	id, err := uuid.Parse(r.PathValue("chirpID"))
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid Id", err)
-		return
-	}
-
-	chirp, err := cfg.db.GetChirp(r.Context(), id)
-	if err != nil {
-		respondWithError(w, http.StatusNotFound, "Couldn't get chirp", err)
-		return
-	}
-
-	respondWithJSON(w, http.StatusOK, Chirp{
-		ID:        chirp.ID,
-		CreatedAt: chirp.CreatedAt,
-		UpdatedAt: chirp.UpdatedAt,
-		Body:      chirp.Body,
-		UserID:    chirp.UserID,
-	})
 }
 
 func validateChirp(body string) (string, error) {
